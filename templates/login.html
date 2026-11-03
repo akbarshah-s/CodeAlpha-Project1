@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sign In – IndianShopEase{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="auth-card">
+    
+    <div class="text-center mb-4">
+      <div class="navbar-brand-icon mx-auto mb-2" style="width: 48px; height: 48px; font-size: 1.5rem;">
+        <i class="bi bi-bag-check-fill"></i>
+      </div>
+      <h3 class="fw-bold mb-1">Welcome Back</h3>
+      <p class="text-muted small">Sign in to manage your orders, wishlist, and profile</p>
+    </div>
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger py-2 px-3 small rounded-3 mb-3">
+        {% for error in form.non_field_errors %}
+          <div><i class="bi bi-exclamation-triangle-fill me-1"></i> {{ error }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'login' %}">
+      {% csrf_token %}
+      
+      <div class="mb-3">
+        <label class="form-label" for="id_username">Username</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-person"></i></span>
+          <input type="text" name="username" autofocus required id="id_username" class="form-control border-start-0 ps-0" placeholder="Enter your username">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <label class="form-label mb-0" for="id_password">Password</label>
+        </div>
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+          <input type="password" name="password" required id="id_password" class="form-control border-start-0 ps-0" placeholder="••••••••">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary-custom w-100 py-2 fs-6 mt-3">
+        Sign In to Account
+      </button>
+
+      <div class="text-center mt-4 pt-3 border-top small text-muted">
+        Don't have an account yet? <a href="{% url 'register' %}" class="fw-bold text-success">Create account</a>
+      </div>
+
+      <!-- Quick Demo Access Tip -->
+      <div class="mt-4 p-3 bg-subtle-custom rounded-3 small">
+        <div class="fw-bold text-dark mb-1"><i class="bi bi-key-fill text-primary-custom me-1"></i> Quick Demo Logins:</div>
+        <div class="text-muted">
+          Customer: <code>john_doe</code> / <code>password123</code><br>
+          Admin: <code>admin</code> / <code>admin123</code>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

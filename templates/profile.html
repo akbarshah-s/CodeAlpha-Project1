@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile – IndianShopEase{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">My Profile</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <h2 class="fw-bold mb-0">Customer Account</h2>
+    <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm">
+      <i class="bi bi-box-arrow-right me-1"></i> Sign Out
+    </a>
+  </div>
+
+  <div class="row g-4">
+    
+    <!-- User Overview & Edit Form -->
+    <div class="col-lg-5">
+      <div class="bg-white border rounded-4 p-4 shadow-sm mb-4">
+        
+        <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+          <div class="rounded-circle bg-primary-light text-primary-custom d-flex align-items-center justify-content-center fw-bold fs-3" style="width: 64px; height: 64px;">
+            {{ user.first_name|first|default:user.username|first|upper }}
+          </div>
+          <div>
+            <h5 class="fw-bold mb-0">{{ user.get_full_name|default:user.username }}</h5>
+            <small class="text-muted">Member since {{ user.date_joined|date:"M Y" }}</small>
+            {% if user.is_staff %}
+              <div><span class="badge bg-success-subtle text-success small mt-1">Administrator</span></div>
+            {% endif %}
+          </div>
+        </div>
+
+        <h6 class="fw-bold mb-3">Edit Personal Details</h6>
+
+        <form method="POST" action="{% url 'profile' %}">
+          {% csrf_token %}
+          
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label">First Name</label>
+              {{ form.first_name }}
+            </div>
+            <div class="col-6">
+              <label class="form-label">Last Name</label>
+              {{ form.last_name }}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Email Address</label>
+            {{ form.email }}
+          </div>
+
+          <button type="submit" class="btn btn-primary-custom w-100 py-2">
+            Save Profile Changes
+          </button>
+        </form>
+
+      </div>
+    </div>
+
+    <!-- Orders & Stats -->
+    <div class="col-lg-7">
+      
+      <!-- Stats Summary -->
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6">
+          <div class="p-4 bg-white border rounded-4 shadow-sm text-center">
+            <i class="bi bi-bag-check-fill fs-2 text-primary-custom mb-2 d-inline-block"></i>
+            <div class="fs-3 fw-bold text-dark">{{ total_orders }}</div>
+            <div class="text-muted small fw-semibold">Total Orders Placed</div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="p-4 bg-white border rounded-4 shadow-sm text-center">
+            <i class="bi bi-clock-history fs-2 text-warning mb-2 d-inline-block"></i>
+            <div class="fs-3 fw-bold text-dark">{{ recent_orders.count }}</div>
+            <div class="text-muted small fw-semibold">Recent Transactions</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Orders List -->
+      <div class="bg-white border rounded-4 p-4 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+          <h5 class="fw-bold mb-0">Recent Orders</h5>
+          {% if total_orders > 0 %}
+            <a href="{% url 'order_history' %}" class="small text-success fw-bold text-decoration-none">
+              View All ({{ total_orders }}) <i class="bi bi-arrow-right"></i>
+            </a>
+          {% endif %}
+        </div>
+
+        {% if recent_orders %}
+          <div class="list-group list-group-flush">
+            {% for ord in recent_orders %}
+              <div class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                  <div class="fw-bold text-dark">{{ ord.order_number }}</div>
+                  <div class="small text-muted">{{ ord.created_at|date:"M d, Y" }} • {{ ord.items.count }} items</div>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                  <span class="fw-bold text-success">₹{{ ord.total_price }}</span>
+                  <a href="{% url 'order_detail' ord.order_number %}" class="btn btn-sm btn-outline-custom">
+                    Details
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-box2 fs-2 d-block mb-2"></i>
+            No orders found yet.
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

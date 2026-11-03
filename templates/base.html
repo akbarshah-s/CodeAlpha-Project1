@@ -1,0 +1,231 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}IndianShopEase – Modern Shopping Experience{% endblock %}</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Custom IndianShopEase CSS -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Top Announcement Bar -->
+  <div class="top-notice-bar d-none d-md-block">
+    <div class="container d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-truck me-1"></i> Free Shipping on orders over <strong>₹{{ free_shipping_threshold }}</strong> • 30-Day Easy Returns</span>
+      <div class="d-flex gap-3">
+        <span><i class="bi bi-shield-check me-1"></i> Buyer Protection Guaranteed</span>
+        <span><i class="bi bi-headset me-1"></i> Support 24/7</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Navigation Bar -->
+  <header class="main-navbar">
+    <div class="container py-2">
+      <div class="row align-items-center g-2">
+        
+        <!-- Logo -->
+        <div class="col-auto">
+          <a class="navbar-brand-custom" href="{% url 'home' %}">
+            <span class="navbar-brand-icon">
+              <i class="bi bi-bag-check-fill"></i>
+            </span>
+            <span>IndianShop<span style="color: var(--primary);">Ease</span></span>
+          </a>
+        </div>
+
+        <!-- Global Search Bar -->
+        <div class="col order-3 order-md-2 mt-2 mt-md-0">
+          <form action="{% url 'home' %}" method="GET" class="nav-search-form mx-auto">
+            <i class="bi bi-search nav-search-icon"></i>
+            <input type="text" name="q" class="nav-search-input" placeholder="Search products, brands, or categories... (Press '/' to focus)" value="{{ search_query|default:'' }}">
+            {% if selected_category %}
+              <input type="hidden" name="category" value="{{ selected_category.slug }}">
+            {% endif %}
+          </form>
+        </div>
+
+        <!-- Right Actions: Account & Cart -->
+        <div class="col-auto order-2 order-md-3 ms-auto d-flex align-items-center gap-2">
+          
+          <!-- User Account Menu -->
+          {% if user.is_authenticated %}
+            <div class="dropdown">
+              <button class="nav-action-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle fs-5 text-primary-custom"></i>
+                <span class="d-none d-lg-inline">{{ user.first_name|default:user.username }}</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
+                <li class="px-3 py-2 border-bottom">
+                  <div class="fw-bold text-dark">{{ user.get_full_name|default:user.username }}</div>
+                  <small class="text-muted">{{ user.email }}</small>
+                </li>
+                <li><a class="dropdown-item py-2" href="{% url 'profile' %}"><i class="bi bi-person me-2 text-primary-custom"></i>My Profile</a></li>
+                <li><a class="dropdown-item py-2" href="{% url 'order_history' %}"><i class="bi bi-box-seam me-2 text-primary-custom"></i>Order History</a></li>
+                {% if user.is_staff %}
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item py-2 text-success" href="/admin/" target="_blank"><i class="bi bi-speedometer2 me-2"></i>Django Admin</a></li>
+                {% endif %}
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item py-2 text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+              </ul>
+            </div>
+          {% else %}
+            <div class="d-flex align-items-center gap-1">
+              <a href="{% url 'login' %}" class="nav-action-btn">
+                <i class="bi bi-person"></i>
+                <span class="d-none d-sm-inline">Sign In</span>
+              </a>
+              <a href="{% url 'register' %}" class="btn btn-sm btn-primary-custom d-none d-md-inline-flex px-3">
+                Register
+              </a>
+            </div>
+          {% endif %}
+
+          <!-- Shopping Cart Button -->
+          <a href="{% url 'cart_detail' %}" class="nav-action-btn cart-btn-badge" title="Shopping Cart">
+            <i class="bi bi-cart3 fs-5"></i>
+            <span class="d-none d-lg-inline">Cart</span>
+            <span class="cart-counter {% if cart_total_items == 0 %}d-none{% endif %}">
+              {{ cart_total_items }}
+            </span>
+          </a>
+
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Categories Sub-nav Strip -->
+  <nav class="categories-subnav">
+    <div class="container d-flex align-items-center gap-1">
+      <a href="{% url 'home' %}" class="category-pill {% if not selected_category and not search_query %}active{% endif %}">
+        <i class="bi bi-grid-fill"></i> All Products
+      </a>
+      {% for cat in nav_categories %}
+        <a href="{% url 'home' %}?category={{ cat.slug }}" class="category-pill {% if selected_category.slug == cat.slug %}active{% endif %}">
+          <i class="bi {{ cat.icon }}"></i> {{ cat.name }}
+        </a>
+      {% endfor %}
+    </div>
+  </nav>
+
+  <!-- Flash Toast Notifications -->
+  <div class="toast-container-custom">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="toast-custom toast-{{ message.tags|default:'info' }}" role="alert">
+          <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill text-success{% elif message.tags == 'danger' or message.tags == 'error' %}bi-exclamation-triangle-fill text-danger{% elif message.tags == 'warning' %}bi-exclamation-circle-fill text-warning{% else %}bi-info-circle-fill text-info{% endif %} fs-5"></i>
+          <div class="flex-grow-1">
+            <div class="small fw-medium">{{ message }}</div>
+          </div>
+          <button type="button" class="btn-close ms-2 toast-close-btn" aria-label="Close" style="font-size: 0.75rem;"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <!-- Page Content -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Modern Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="row g-4">
+        
+        <!-- Brand Info -->
+        <div class="col-lg-4 col-md-6">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <div class="navbar-brand-icon" style="width: 32px; height: 32px; font-size: 1rem;">
+              <i class="bi bi-bag-check-fill"></i>
+            </div>
+            <span class="fs-4 fw-bold text-white">IndianShop<span style="color: var(--primary);">Ease</span></span>
+          </div>
+          <p class="text-secondary small pe-lg-4">
+            IndianShopEase is your curated destination for electronics, modern fashion, home essentials, and lifestyle gear. Delivering premium quality with complete peace of mind.
+          </p>
+          <div class="d-flex gap-3 text-secondary mt-3 fs-5">
+            <a href="#" class="text-secondary hover-primary"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" class="text-secondary hover-primary"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="text-secondary hover-primary"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="text-secondary hover-primary"><i class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+
+        <!-- Quick Categories -->
+        <div class="col-lg-2 col-md-6">
+          <h6 class="footer-heading">Categories</h6>
+          <ul class="footer-links">
+            {% for cat in nav_categories|slice:":5" %}
+              <li><a href="{% url 'home' %}?category={{ cat.slug }}">{{ cat.name }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <!-- Customer Care -->
+        <div class="col-lg-3 col-md-6">
+          <h6 class="footer-heading">Customer Care</h6>
+          <ul class="footer-links">
+            <li><a href="{% url 'order_history' %}">Track My Order</a></li>
+            <li><a href="{% url 'cart_detail' %}">View Shopping Cart</a></li>
+            <li><a href="#">Shipping & Delivery Policy</a></li>
+            <li><a href="#">Returns & Refund Guarantee</a></li>
+            <li><a href="#">Privacy Policy & Terms</a></li>
+          </ul>
+        </div>
+
+        <!-- Newsletter & Contact -->
+        <div class="col-lg-3 col-md-6">
+          <h6 class="footer-heading">Stay Connected</h6>
+          <p class="small text-secondary mb-2">Subscribe to unlock secret drops and 10% off your first purchase.</p>
+          <div class="input-group mb-3">
+            <input type="email" class="form-control form-control-sm" placeholder="Enter your email" style="border-radius: var(--radius-md) 0 0 var(--radius-md);">
+            <button class="btn btn-primary-custom btn-sm px-3" type="button" style="border-radius: 0 var(--radius-md) var(--radius-md) 0;">Join</button>
+          </div>
+          <div class="small text-secondary">
+            <i class="bi bi-envelope-fill me-1 text-primary-custom"></i> support@indianshopease.local<br>
+            <i class="bi bi-telephone-fill me-1 text-primary-custom"></i> +1 (800) 555-EASE
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Bottom -->
+      <div class="footer-bottom">
+        <div>&copy; 2026 IndianShopEase. All rights reserved. Crafted for excellence.</div>
+        <div class="d-flex align-items-center gap-3 fs-5 text-secondary">
+          <i class="bi bi-credit-card-2-front" title="Card Payments"></i>
+          <i class="bi bi-paypal" title="PayPal"></i>
+          <i class="bi bi-apple" title="Apple Pay"></i>
+          <i class="bi bi-shield-lock-fill" title="256-Bit SSL Secured"></i>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5.3 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Custom JavaScript -->
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

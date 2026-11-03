@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Account – IndianShopEase{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="auth-card" style="max-width: 540px;">
+    
+    <div class="text-center mb-4">
+      <div class="navbar-brand-icon mx-auto mb-2" style="width: 48px; height: 48px; font-size: 1.5rem;">
+        <i class="bi bi-person-plus-fill"></i>
+      </div>
+      <h3 class="fw-bold mb-1">Create Your Account</h3>
+      <p class="text-muted small">Join IndianShopEase for faster checkouts and exclusive member rewards</p>
+    </div>
+
+    {% if form.errors %}
+      <div class="alert alert-danger py-2 px-3 small rounded-3 mb-3">
+        Please correct the errors indicated below.
+      </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'register' %}">
+      {% csrf_token %}
+      
+      <div class="row g-3 mb-3">
+        <div class="col-sm-6">
+          <label class="form-label">First Name *</label>
+          {{ form.first_name }}
+          {% if form.first_name.errors %}
+            <div class="text-danger small mt-1">{{ form.first_name.errors }}</div>
+          {% endif %}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label">Last Name *</label>
+          {{ form.last_name }}
+          {% if form.last_name.errors %}
+            <div class="text-danger small mt-1">{{ form.last_name.errors }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Username *</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+          <div class="text-danger small mt-1">{{ form.username.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Email Address *</label>
+        {{ form.email }}
+        {% if form.email.errors %}
+          <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Password *</label>
+        {{ form.password }}
+        {% if form.password.errors %}
+          <div class="text-danger small mt-1">{{ form.password.errors }}</div>
+        {% endif %}
+        <div class="text-muted" style="font-size: 0.75rem;">Must be at least 6 characters long.</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Confirm Password *</label>
+        {{ form.confirm_password }}
+        {% if form.confirm_password.errors %}
+          <div class="text-danger small mt-1">{{ form.confirm_password.errors }}</div>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="btn btn-primary-custom w-100 py-2 fs-6 mt-3">
+        Register Account
+      </button>
+
+      <div class="text-center mt-4 pt-3 border-top small text-muted">
+        Already have an account? <a href="{% url 'login' %}" class="fw-bold text-success">Sign in here</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

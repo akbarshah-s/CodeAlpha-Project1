@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Orders – IndianShopEase{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'profile' %}">My Account</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Order History</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1">My Orders</h2>
+      <p class="text-muted small mb-0">Track shipments, view receipts, and manage order status</p>
+    </div>
+    <a href="{% url 'home' %}" class="btn btn-outline-custom btn-sm">
+      <i class="bi bi-cart-plus me-1"></i> New Purchase
+    </a>
+  </div>
+
+  {% if orders %}
+    <div class="row g-3">
+      {% for order in orders %}
+        <div class="col-12">
+          <div class="bg-white border rounded-4 p-4 shadow-sm transition hover-elevate">
+            <div class="row align-items-center g-3">
+              
+              <div class="col-md-3">
+                <span class="text-muted small">Order ID</span>
+                <div class="fw-bold fs-6 text-dark">{{ order.order_number }}</div>
+                <small class="text-muted">{{ order.created_at|date:"M d, Y • h:i A" }}</small>
+              </div>
+
+              <div class="col-md-2">
+                <span class="text-muted small">Status</span>
+                <div>
+                  {% if order.order_status == 'Placed' %}
+                    <span class="status-pill status-placed"><i class="bi bi-clock-history"></i> Placed</span>
+                  {% elif order.order_status == 'Processing' %}
+                    <span class="status-pill status-processing"><i class="bi bi-gear-wide-connected"></i> Processing</span>
+                  {% elif order.order_status == 'Shipped' %}
+                    <span class="status-pill status-shipped"><i class="bi bi-truck"></i> Shipped</span>
+                  {% elif order.order_status == 'Delivered' %}
+                    <span class="status-pill status-delivered"><i class="bi bi-check-circle-fill"></i> Delivered</span>
+                  {% else %}
+                    <span class="status-pill status-cancelled"><i class="bi bi-x-circle-fill"></i> Cancelled</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="col-md-3">
+                <span class="text-muted small">Items ({{ order.items.count }})</span>
+                <div class="text-truncate small fw-semibold" style="max-width: 240px;">
+                  {% for item in order.items.all %}
+                    {{ item.quantity }}x {{ item.product.name }}{% if not forloop.last %}, {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="col-md-2 text-md-center">
+                <span class="text-muted small">Total</span>
+                <div class="fw-bold fs-5 text-success">₹{{ order.total_price }}</div>
+              </div>
+
+              <div class="col-md-2 text-md-end">
+                <a href="{% url 'order_detail' order.order_number %}" class="btn btn-outline-custom btn-sm w-100">
+                  <i class="bi bi-eye me-1"></i> View Details
+                </a>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center py-5 bg-white border rounded-4 my-4 shadow-sm">
+      <div class="rounded-circle bg-subtle-custom text-muted mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2.2rem;">
+        <i class="bi bi-box-seam"></i>
+      </div>
+      <h4 class="fw-bold mb-2">No Orders Placed Yet</h4>
+      <p class="text-muted mx-auto" style="max-width: 420px;">
+        You haven't placed any orders with this account yet. Discover our latest collections and start shopping today!
+      </p>
+      <a href="{% url 'home' %}" class="btn btn-primary-custom px-4 py-2 mt-2">
+        <i class="bi bi-bag-plus me-1"></i> Explore Products
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Shopping Cart – IndianShopEase{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <h2 class="fw-bold mb-0">Shopping Cart</h2>
+    <span class="text-muted">{{ cart|length }} item{{ cart|length|pluralize }}</span>
+  </div>
+
+  {% if cart|length > 0 %}
+    <div class="row g-4">
+      
+      <!-- Cart Items List -->
+      <div class="col-lg-8">
+        
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="small text-muted fw-semibold">Review your selected items</span>
+          <a href="{% url 'cart_clear' %}" class="small text-danger text-decoration-none" onclick="return confirm('Are you sure you want to clear all items from your cart?');">
+            <i class="bi bi-trash3 me-1"></i> Clear Cart
+          </a>
+        </div>
+
+        {% for item in cart %}
+          <div class="cart-card-item">
+            <div class="row align-items-center g-3">
+              
+              <!-- Thumbnail -->
+              <div class="col-auto">
+                <a href="{% url 'product_detail' item.product.slug %}">
+                  {% if item.product.image %}
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="cart-img-thumb">
+                  {% else %}
+                    <div class="cart-img-thumb bg-light d-flex align-items-center justify-content-center text-muted">
+                      <i class="bi bi-image"></i>
+                    </div>
+                  {% endif %}
+                </a>
+              </div>
+
+              <!-- Details -->
+              <div class="col">
+                <div class="small text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">
+                  {{ item.product.category.name|default:'General' }}
+                </div>
+                <h5 class="fw-bold mb-1">
+                  <a href="{% url 'product_detail' item.product.slug %}" class="text-dark text-decoration-none hover-primary">
+                    {{ item.product.name }}
+                  </a>
+                </h5>
+                <div class="small text-muted">
+                  Unit Price: <strong class="text-dark">₹{{ item.price }}</strong>
+                  {% if item.product.stock <= 5 %}
+                    <span class="text-warning ms-2"><i class="bi bi-exclamation-circle"></i> Low stock ({{ item.product.stock }} left)</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Quantity Controls -->
+              <div class="col-auto">
+                <form action="{% url 'cart_update' item.product.id %}" method="POST" class="d-inline-flex align-items-center">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="set">
+                  
+                  <div class="quantity-stepper">
+                    <!-- Decrement -->
+                    <button type="submit" name="action" value="decrease" class="btn-qty-minus" aria-label="Decrease quantity">
+                      <i class="bi bi-dash"></i>
+                    </button>
+                    <!-- Quantity Input -->
+                    <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" data-max-stock="{{ item.product.stock }}" onchange="this.form.submit();">
+                    <!-- Increment -->
+                    <button type="submit" name="action" value="increase" class="btn-qty-plus" aria-label="Increase quantity" {% if item.quantity >= item.product.stock %}disabled{% endif %}>
+                      <i class="bi bi-plus"></i>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Line Total -->
+              <div class="col-auto text-end" style="min-width: 90px;">
+                <div class="fs-5 fw-bold text-success">₹{{ item.total_price }}</div>
+              </div>
+
+              <!-- Remove Button -->
+              <div class="col-auto">
+                <a href="{% url 'cart_remove' item.product.id %}" class="btn btn-outline-danger btn-sm border-0" title="Remove item from cart">
+                  <i class="bi bi-trash3 fs-5"></i>
+                </a>
+              </div>
+
+            </div>
+          </div>
+        {% endfor %}
+
+        <!-- Navigation Buttons -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+          <a href="{% url 'home' %}" class="btn btn-outline-custom">
+            <i class="bi bi-arrow-left me-1"></i> Continue Shopping
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Order Summary Sidebar -->
+      <div class="col-lg-4">
+        <div class="order-summary-box">
+          <h4 class="fw-bold mb-3 pb-2 border-bottom">Order Summary</h4>
+          
+          <div class="summary-row">
+            <span>Items Subtotal:</span>
+            <span class="fw-semibold text-dark">₹{{ cart.get_subtotal_price }}</span>
+          </div>
+
+          <div class="summary-row">
+            <span>Estimated Shipping:</span>
+            <span>
+              {% if cart.get_shipping_price == 0 %}
+                <span class="text-success fw-bold">FREE</span>
+              {% else %}
+                <span class="fw-semibold text-dark">₹{{ cart.get_shipping_price }}</span>
+              {% endif %}
+            </span>
+          </div>
+
+          {% if cart.get_shipping_price > 0 %}
+            <div class="alert alert-info py-2 px-3 small my-2 rounded-3">
+              <i class="bi bi-info-circle me-1"></i> Add <strong>₹{{ cart.get_remaining_for_free_shipping }}</strong> more for <strong>FREE Shipping</strong>!
+            </div>
+          {% endif %}
+
+          <div class="summary-row total">
+            <span>Estimated Total:</span>
+            <span class="text-success">₹{{ cart.get_total_price }}</span>
+          </div>
+
+          <!-- Checkout Button -->
+          <a href="{% url 'checkout' %}" class="btn btn-primary-custom w-100 py-3 mt-4 fs-6">
+            Proceed to Checkout <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+
+          <!-- Promo Voucher Box Demo -->
+          <div class="mt-4 pt-3 border-top">
+            <label class="form-label small fw-bold text-muted mb-2">Have a Promo Coupon?</label>
+            <div class="input-group">
+              <input type="text" class="form-control form-control-sm" placeholder="e.g. SHOPEASE10" value="SHOPEASE10">
+              <button class="btn btn-outline-secondary btn-sm" type="button" onclick="alert('Demo coupon applied! 10% discount included in demo promo.');">Apply</button>
+            </div>
+          </div>
+
+          <!-- Security Badges -->
+          <div class="mt-4 pt-3 border-top text-center text-muted small">
+            <div class="d-flex justify-content-center align-items-center gap-2 mb-1">
+              <i class="bi bi-lock-fill text-success"></i>
+              <span>256-Bit Bank-Grade SSL Checkout</span>
+            </div>
+            <div>Guaranteed Safe & Secure Processing</div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  {% else %}
+    <!-- Empty Cart State -->
+    <div class="text-center py-5 bg-white border rounded-4 my-4 shadow-sm">
+      <div class="rounded-circle bg-subtle-custom text-muted mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 90px; height: 90px; font-size: 2.5rem;">
+        <i class="bi bi-cart-x"></i>
+      </div>
+      <h3 class="fw-bold mb-2">Your Shopping Cart is Empty</h3>
+      <p class="text-muted mx-auto" style="max-width: 460px;">
+        Looks like you haven't added anything to your cart yet. Explore our featured deals and discover something amazing today!
+      </p>
+      <a href="{% url 'home' %}" class="btn btn-primary-custom px-4 py-2 mt-2">
+        <i class="bi bi-bag-plus me-1"></i> Start Shopping Now
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

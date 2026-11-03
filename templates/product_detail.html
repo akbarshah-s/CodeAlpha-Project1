@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} – IndianShopEase{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'home' %}"><i class="bi bi-house"></i> Home</a></li>
+      {% if product.category %}
+        <li class="breadcrumb-item"><a href="{% url 'home' %}?category={{ product.category.slug }}">{{ product.category.name }}</a></li>
+      {% endif %}
+      <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+    </ol>
+  </nav>
+
+  <!-- Product Detail Hero Card -->
+  <div class="product-detail-hero">
+    <div class="row g-5 align-items-center">
+      
+      <!-- Product Large Image -->
+      <div class="col-lg-6">
+        <div class="product-detail-img-box p-4">
+          {% if product.discount_price %}
+            <div class="position-absolute top-0 start-0 m-3">
+              <span class="badge-tag badge-discount">-{{ product.discount_percentage }}% OFF</span>
+            </div>
+          {% endif %}
+          {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid rounded-3">
+          {% else %}
+            <div class="py-5 text-muted text-center">
+              <i class="bi bi-image" style="font-size: 5rem;"></i>
+              <p class="mt-2">No Image Available</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Product Information -->
+      <div class="col-lg-6">
+        <div class="mb-2">
+          {% if product.category %}
+            <a href="{% url 'home' %}?category={{ product.category.slug }}" class="feature-pill-badge text-decoration-none">
+              <i class="bi {{ product.category.icon|default:'bi-tag' }}"></i> {{ product.category.name }}
+            </a>
+          {% endif %}
+          {% if product.featured %}
+            <span class="badge-tag badge-featured ms-2">Featured Item</span>
+          {% endif %}
+        </div>
+
+        <h1 class="fw-bold mb-3 mt-2" style="font-size: 2.1rem; color: #064e3b;">
+          {{ product.name }}
+        </h1>
+
+        <!-- Rating & SKU Demo -->
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <div class="text-warning">
+            <i class="bi bi-star-fill"></i>
+            <i class="bi bi-star-fill"></i>
+            <i class="bi bi-star-fill"></i>
+            <i class="bi bi-star-fill"></i>
+            <i class="bi bi-star-half"></i>
+          </div>
+          <span class="small fw-semibold text-muted">4.8 (128 customer reviews)</span>
+          <span class="text-muted">•</span>
+          <span class="small text-muted">SKU: SE-PROD-{{ product.id|stringformat:"04d" }}</span>
+        </div>
+
+        <!-- Pricing -->
+        <div class="d-flex align-items-baseline gap-3 mb-4">
+          <span class="fs-1 fw-extrabold text-success" style="font-weight: 800;">
+            ₹{{ product.current_price }}
+          </span>
+          {% if product.discount_price %}
+            <span class="fs-4 text-muted text-decoration-line-through">
+              ₹{{ product.price }}
+            </span>
+            <span class="badge bg-danger-subtle text-danger px-2 py-1 rounded-pill small fw-bold">
+              Save ₹{{ product.discount_amount }}
+            </span>
+          {% endif %}
+        </div>
+
+        <!-- Stock Indicator -->
+        <div class="mb-4">
+          {% if product.is_in_stock %}
+            {% if product.is_low_stock %}
+              <div class="alert alert-warning py-2 px-3 small d-inline-flex align-items-center gap-2 mb-0 rounded-3">
+                <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                <strong>Hurry!</strong> Only <strong>{{ product.stock }}</strong> item{{ product.stock|pluralize }} left in stock!
+              </div>
+            {% else %}
+              <div class="text-success small fw-bold d-flex align-items-center gap-2">
+                <span class="stock-dot" style="background-color: var(--primary); width: 10px; height: 10px; border-radius: 50%;"></span>
+                In Stock ready to ship ({{ product.stock }} units available)
+              </div>
+            {% endif %}
+          {% else %}
+            <div class="alert alert-danger py-2 px-3 small d-inline-flex align-items-center gap-2 mb-0 rounded-3">
+              <i class="bi bi-x-circle-fill text-danger"></i>
+              Currently Out of Stock.
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Description -->
+        <div class="mb-4 text-secondary" style="font-size: 1.05rem; line-height: 1.7;">
+          {{ product.description }}
+        </div>
+
+        <hr class="my-4">
+
+        <!-- Add to Cart Form -->
+        {% if product.is_in_stock %}
+          <form action="{% url 'cart_add' product.id %}" method="POST" class="ajax-add-to-cart-form">
+            {% csrf_token %}
+            <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+              
+              <!-- Quantity Stepper -->
+              <div>
+                <label class="form-label small fw-bold text-muted mb-1">Quantity:</label>
+                <div class="quantity-stepper">
+                  <button type="button" class="btn-qty-minus" aria-label="Decrease quantity">
+                    <i class="bi bi-dash"></i>
+                  </button>
+                  <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" data-max-stock="{{ product.stock }}" class="qty-input">
+                  <button type="button" class="btn-qty-plus" aria-label="Increase quantity">
+                    <i class="bi bi-plus"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Add to Cart Button -->
+              <div class="flex-grow-1" style="min-width: 200px; padding-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary-custom w-100 py-2 fs-6">
+                  <i class="bi bi-cart-plus me-1"></i> Add to Shopping Cart
+                </button>
+              </div>
+
+            </div>
+          </form>
+
+          <!-- Buy Now Shortcut Form -->
+          <form action="{% url 'cart_add' product.id %}" method="POST" class="mt-2">
+            {% csrf_token %}
+            <input type="hidden" name="quantity" value="1">
+            <input type="hidden" name="next" value="checkout">
+            <button type="submit" class="btn btn-outline-custom w-100 py-2">
+              <i class="bi bi-lightning-charge me-1"></i> Buy Now with 1-Click
+            </button>
+          </form>
+        {% else %}
+          <div class="alert alert-secondary py-3 text-center rounded-3">
+            <i class="bi bi-bell me-2"></i> This item is currently unavailable. Check back soon for restocks.
+          </div>
+        {% endif %}
+
+        <!-- Trust Badges -->
+        <div class="row g-2 mt-4 pt-3 border-top text-muted small">
+          <div class="col-sm-4 d-flex align-items-center gap-2">
+            <i class="bi bi-truck fs-5 text-primary-custom"></i>
+            <span>Fast Dispatch</span>
+          </div>
+          <div class="col-sm-4 d-flex align-items-center gap-2">
+            <i class="bi bi-arrow-repeat fs-5 text-primary-custom"></i>
+            <span>30-Day Guarantee</span>
+          </div>
+          <div class="col-sm-4 d-flex align-items-center gap-2">
+            <i class="bi bi-shield-check fs-5 text-primary-custom"></i>
+            <span>Official Warranty</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Related Products Section -->
+  {% if related_products %}
+    <section class="mt-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h3 class="fw-bold mb-0">Related Products</h3>
+          <p class="text-muted small">Customers who viewed this item also loved these</p>
+        </div>
+        <a href="{% url 'home' %}?category={{ product.category.slug }}" class="btn btn-outline-custom btn-sm">
+          View More in {{ product.category.name }}
+        </a>
+      </div>
+
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+        {% for rel in related_products %}
+          <div class="col">
+            <div class="product-card">
+              <a href="{% url 'product_detail' rel.slug %}" class="product-img-wrap">
+                {% if rel.image %}
+                  <img src="{{ rel.image.url }}" alt="{{ rel.name }}" class="product-img">
+                {% endif %}
+              </a>
+              <div class="product-body">
+                <div class="product-category-text">{{ rel.category.name }}</div>
+                <h4 class="product-title">
+                  <a href="{% url 'product_detail' rel.slug %}">{{ rel.name }}</a>
+                </h4>
+                <div class="product-pricing">
+                  <span class="price-current">₹{{ rel.current_price }}</span>
+                  {% if rel.discount_price %}
+                    <span class="price-original">₹{{ rel.price }}</span>
+                  {% endif %}
+                </div>
+                <div class="product-footer-actions">
+                  <a href="{% url 'product_detail' rel.slug %}" class="btn btn-primary-custom btn-sm w-100">
+                    View Product
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+</div>
+{% endblock %}

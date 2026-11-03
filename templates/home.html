@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}IndianShopEase – Modern Shopping, Delivered with Ease{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+
+  <!-- Hero Section (Shown when no search/category filter is active) -->
+  {% if not search_query and not selected_category %}
+    <section class="hero-section">
+      <div class="row align-items-center">
+        <div class="col-lg-7">
+          <div class="hero-pill-tag">
+            <i class="bi bi-stars text-warning"></i> Spring Collection 2026 Live
+          </div>
+          <h1 class="hero-title">
+            Discover Quality, <br>Delivered with <span>Ease</span>.
+          </h1>
+          <p class="hero-subtitle">
+            Curated essentials engineered for modern living. Browse premium tech, trendsetting fashion, and functional home comfort with lightning-fast delivery.
+          </p>
+          <div class="d-flex flex-wrap gap-3">
+            <a href="#products-section" class="btn btn-primary-custom px-4 py-2">
+              <i class="bi bi-bag me-1"></i> Start Shopping
+            </a>
+            <a href="{% url 'home' %}?sort=price_asc" class="btn btn-outline-custom px-4 py-2">
+              <i class="bi bi-tag me-1"></i> View Best Deals
+            </a>
+          </div>
+
+          <div class="hero-benefits">
+            <div class="hero-benefit-item">
+              <i class="bi bi-shield-fill-check fs-5"></i>
+              <span>100% Authentic</span>
+            </div>
+            <div class="hero-benefit-item">
+              <i class="bi bi-truck fs-5"></i>
+              <span>Free Shipping on orders over ₹{{ free_shipping_threshold }}</span>
+            </div>
+            <div class="hero-benefit-item">
+              <i class="bi bi-arrow-repeat fs-5"></i>
+              <span>30-Day Easy Returns</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-5 d-none d-lg-block text-center">
+          <div class="hero-showcase">
+            <div class="hero-orbit hero-orbit-back" aria-hidden="true"></div>
+            <div class="hero-orbit hero-orbit-front" aria-hidden="true"></div>
+            <span class="hero-sparkle hero-sparkle-one" aria-hidden="true"><i class="bi bi-stars"></i></span>
+            <span class="hero-sparkle hero-sparkle-two" aria-hidden="true"><i class="bi bi-plus-lg"></i></span>
+            <div class="hero-float-note hero-float-delivery">
+              <span class="hero-note-icon"><i class="bi bi-truck"></i></span>
+              <span><strong>Fast delivery</strong><small>Right to your door</small></span>
+            </div>
+            <div class="hero-float-note hero-float-rating">
+              <span class="hero-rating-stars" aria-label="5 out of 5 stars">★★★★★</span>
+              <span><strong>Loved by shoppers</strong><small>Quality you can trust</small></span>
+            </div>
+          <div class="hero-feature-card p-4 bg-white rounded-4 shadow-sm border mx-auto">
+            <div class="badge-tag badge-discount mb-2 d-inline-block">Staff Pick</div>
+            <h5 class="fw-bold mb-1">Aura Pro Headphones</h5>
+            <p class="small text-muted mb-2">Active Noise Cancellation & 40hr Battery</p>
+            <div class="product-img-wrap rounded-3 mb-3" style="padding-top: 75%;">
+              <img src="/media/products/headphones.png" alt="Aura Pro" class="product-img">
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="fs-4 fw-bold text-success">₹12,339.76</span>
+                <span class="small text-muted text-decoration-line-through ms-1">₹14,238.33</span>
+              </div>
+              <a href="{% url 'product_detail' 'aura-pro-wireless-headphones' %}" class="btn btn-sm btn-primary-custom">
+                View Deal
+              </a>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Product Categories Visual Grid -->
+    <section class="mb-5">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h3 class="fw-bold mb-1">Explore Categories</h3>
+          <p class="text-muted small mb-0">Browse through our specialized product collections</p>
+        </div>
+      </div>
+      <div class="row g-3">
+        {% for cat in nav_categories %}
+          <div class="col-6 col-md-4 col-lg">
+            <a href="{% url 'home' %}?category={{ cat.slug }}" class="text-decoration-none">
+              <div class="category-visual-card p-3 bg-white border rounded-3 text-center h-100 transition shadow-sm hover-elevate">
+                <div class="category-visual-icon rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center">
+                  <i class="bi {{ cat.icon }}"></i>
+                </div>
+                <div class="fw-bold text-dark small">{{ cat.name }}</div>
+                <div class="text-muted" style="font-size: 0.75rem;">{{ cat.products.count }} items</div>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  <!-- Filter & Products Header Bar -->
+  <section id="products-section" class="mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pb-3 border-bottom">
+      <div>
+        <h4 class="fw-bold mb-1">
+          {% if selected_category %}
+            {{ selected_category.name }}
+          {% elif search_query %}
+            Search results for "<span class="text-primary-custom">{{ search_query }}</span>"
+          {% else %}
+            All Products
+          {% endif %}
+        </h4>
+        <div class="text-muted small">
+          Showing <strong>{{ products.count }}</strong> product{{ products.count|pluralize }}
+          {% if search_query or selected_category %}
+            <a href="{% url 'home' %}" class="text-danger ms-2"><i class="bi bi-x-circle"></i> Clear Filters</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Sorting Selector -->
+      <div class="d-flex align-items-center gap-2">
+        <label for="sort-select" class="small fw-semibold text-muted d-none d-sm-inline">Sort by:</label>
+        <select id="sort-select" class="form-select form-select-sm" style="width: auto; min-width: 170px;">
+          <option value="" {% if not sort_by %}selected{% endif %}>Featured</option>
+          <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+          <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+          <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Arrivals</option>
+          <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name (A-Z)</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- Product Listing Grid -->
+  <section class="mb-5">
+    {% if products %}
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+        {% for product in products %}
+          <div class="col">
+            <div class="product-card">
+              
+              <!-- Badges -->
+              <div class="product-badge-float">
+                {% if product.discount_price %}
+                  <span class="badge-tag badge-discount">-{{ product.discount_percentage }}%</span>
+                {% elif product.featured %}
+                  <span class="badge-tag badge-featured">Featured</span>
+                {% endif %}
+              </div>
+
+              <!-- Product Image -->
+              <a href="{% url 'product_detail' product.slug %}" class="product-img-wrap">
+                {% if product.image %}
+                  <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img" loading="lazy">
+                {% else %}
+                  <div class="d-flex align-items-center justify-content-center h-100 bg-light text-muted">
+                    <i class="bi bi-image fs-1"></i>
+                  </div>
+                {% endif %}
+              </a>
+
+              <!-- Card Body -->
+              <div class="product-body">
+                <div class="product-category-text">{{ product.category.name|default:'General' }}</div>
+                
+                <h3 class="product-title">
+                  <a href="{% url 'product_detail' product.slug %}" title="{{ product.name }}">
+                    {{ product.name }}
+                  </a>
+                </h3>
+
+                <!-- Pricing -->
+                <div class="product-pricing">
+                  <span class="price-current">₹{{ product.current_price }}</span>
+                  {% if product.discount_price %}
+                    <span class="price-original">₹{{ product.price }}</span>
+                  {% endif %}
+                </div>
+
+                <!-- Stock Indicator -->
+                <div class="stock-indicator">
+                  {% if product.is_in_stock %}
+                    {% if product.is_low_stock %}
+                      <span class="stock-low"><span class="stock-dot"></span> Only {{ product.stock }} left</span>
+                    {% else %}
+                      <span class="stock-in"><span class="stock-dot"></span> In Stock ({{ product.stock }})</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="stock-out"><span class="stock-dot"></span> Out of Stock</span>
+                  {% endif %}
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="product-footer-actions">
+                  {% if product.is_in_stock %}
+                    <form action="{% url 'cart_add' product.id %}" method="POST" class="ajax-add-to-cart-form flex-grow-1">
+                      {% csrf_token %}
+                      <input type="hidden" name="quantity" value="1">
+                      <button type="submit" class="btn btn-primary-custom w-100 btn-sm">
+                        <i class="bi bi-cart-plus"></i> Add to Cart
+                      </button>
+                    </form>
+                  {% else %}
+                    <button class="btn btn-secondary w-100 btn-sm" disabled>
+                      Sold Out
+                    </button>
+                  {% endif %}
+
+                  <a href="{% url 'product_detail' product.slug %}" class="btn-icon-square" title="View Product Details">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center py-5 bg-white border rounded-3 my-4">
+        <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+        <h4 class="fw-bold mt-3">No products found</h4>
+        <p class="text-muted">We couldn't find any items matching your criteria. Try adjusting your search query or filters.</p>
+        <a href="{% url 'home' %}" class="btn btn-primary-custom mt-2">
+          <i class="bi bi-arrow-left me-1"></i> Browse All Products
+        </a>
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Special Offers Promo Banner (Shown when no active filters) -->
+  {% if not search_query and not selected_category %}
+    <section class="promo-banner">
+      <div>
+        <div class="badge bg-warning text-dark px-3 py-1 fw-bold mb-2">LIMITED TIME PROMO</div>
+        <h2 class="text-white fw-bold mb-2">Save an Extra 10% on Everything!</h2>
+        <p class="text-white-50 mb-0">Use promo voucher code <strong class="text-white bg-dark px-2 py-1 rounded">SHOPEASE10</strong> at checkout on all orders.</p>
+      </div>
+      <div>
+        <a href="#products-section" class="btn btn-light px-4 py-2 fw-bold text-success">
+          Claim Offer Now
+        </a>
+      </div>
+    </section>
+
+    <!-- Why Choose IndianShopEase Section -->
+    <section class="py-4">
+      <div class="text-center mb-4">
+        <h3 class="fw-bold">Why Shop With IndianShopEase?</h3>
+        <p class="text-muted small">Experience premium commerce designed with customer happiness first</p>
+      </div>
+      <div class="row g-4 text-center">
+        <div class="col-md-3">
+          <div class="p-4 bg-white border rounded-3 h-100">
+            <i class="bi bi-box-seam-fill fs-1 text-primary-custom mb-3 d-inline-block"></i>
+            <h6 class="fw-bold">Express Delivery</h6>
+            <p class="small text-muted mb-0">Fast, insured order fulfillment direct to your door with real-time updates.</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="p-4 bg-white border rounded-3 h-100">
+            <i class="bi bi-shield-check fs-1 text-primary-custom mb-3 d-inline-block"></i>
+            <h6 class="fw-bold">Secure Transactions</h6>
+            <p class="small text-muted mb-0">Industry-standard encryption guarantees your payment data remains 100% private.</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="p-4 bg-white border rounded-3 h-100">
+            <i class="bi bi-arrow-counterclockwise fs-1 text-primary-custom mb-3 d-inline-block"></i>
+            <h6 class="fw-bold">Hassle-Free Returns</h6>
+            <p class="small text-muted mb-0">Not satisfied? Return any unopened product within 30 days for a full refund.</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="p-4 bg-white border rounded-3 h-100">
+            <i class="bi bi-patch-check-fill fs-1 text-primary-custom mb-3 d-inline-block"></i>
+            <h6 class="fw-bold">Curated Quality</h6>
+            <p class="small text-muted mb-0">Every item in our catalogue is vetted for durability, design, and performance.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+</div>
+{% endblock %}

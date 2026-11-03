@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: shopease
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --no-input
+    preDeployCommand: python manage.py migrate
+    startCommand: python manage.py copy_initial_media && gunicorn store_project.wsgi:application
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://*.onrender.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: shopease-db
+          property: connectionString
+      - key: MEDIA_ROOT
+        value: /var/data/media
+    disk:
+      name: shopease-media
+      mountPath: /var/data
+      sizeGB: 1
+
+databases:
+  - name: shopease-db
+    plan: basic-256mb
+    databaseName: shopease
+    user: shopease
